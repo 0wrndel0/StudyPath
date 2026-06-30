@@ -1,12 +1,15 @@
 import express from "express";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 import {
   getGoals,
   createGoal,
   updateGoal,
   deleteGoal
-} from "../controllers/goalsController.js";
+} from "../controllers/goalController.js";
 
 const router = express.Router();
+
+router.use(authMiddleware);
 
 router.get("/", getGoals);
 router.post("/", createGoal);

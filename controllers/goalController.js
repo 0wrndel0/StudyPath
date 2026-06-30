@@ -1,51 +1,83 @@
-let goals = [];
+import Goal from "../models/Goal.js";
 
-export const getGoals = (req, res) => {
-  res.json(goals);
-};
+export const getGoals = async (req, res) => {
+  try {
+    const goals = await Goal.find({
+      userId: req.user.id
+    });
 
-export const createGoal = (req, res) => {
-  const { titulo, descricao } = req.body;
-
-  const newGoal = {
-    id: goals.length + 1,
-    titulo,
-    descricao,
-    status: "Em andamento"
-  };
-
-  goals.push(newGoal);
-
-  res.status(201).json(newGoal);
-};
-
-export const updateGoal = (req, res) => {
-  const { id } = req.params;
-
-  const goalIndex = goals.findIndex(g => g.id === parseInt(id));
-
-  if (goalIndex === -1) {
-    return res.status(404).json({ message: "Meta não encontrada" });
+    res.json(goals);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
   }
-
-  goals[goalIndex] = {
-    ...goals[goalIndex],
-    ...req.body
-  };
-
-  res.json(goals[goalIndex]);
 };
 
-export const deleteGoal = (req, res) => {
-  const { id } = req.params;
+export const createGoal = async (req, res) => {
+  try {
+    const { titulo, descricao } = req.body;
 
-  const goalIndex = goals.findIndex(g => g.id === parseInt(id));
+    const goal = await Goal.create({
+      titulo,
+      descricao,
+      userId: req.user.id
+    });
 
-  if (goalIndex === -1) {
-    return res.status(404).json({ message: "Meta não encontrada" });
+    res.status(201).json(goal);
+  } catch (error) {
+    res.status(400).json({
+      message: error.message
+    });
   }
+};
 
-  const removed = goals.splice(goalIndex, 1);
+export const updateGoal = async (req, res) => {
+  try {
+    const goal = await Goal.findOneAndUpdate(
+      {
+        _id: req.params.id,
+        userId: req.user.id
+      },
+      req.body,
+      {
+        new: true
+      }
+    );
 
-  res.json(removed[0]);
+    if (!goal) {
+      return res.status(404).json({
+        message: "Meta não encontrada"
+      });
+    }
+
+    res.json(goal);
+  } catch (error) {
+    res.status(400).json({
+      message: error.message
+    });
+  }
+};
+
+export const deleteGoal = async (req, res) => {
+  try {
+    const goal = await Goal.findOneAndDelete({
+      _id: req.params.id,
+      userId: req.user.id
+    });
+
+    if (!goal) {
+      return res.status(404).json({
+        message: "Meta não encontrada"
+      });
+    }
+
+    res.json({
+      message: "Meta removida com sucesso"
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error.message
+    });
+  }
 };

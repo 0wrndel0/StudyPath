@@ -1,25 +1,42 @@
-let users = [
-    {
-      id: 1,
-      nome: "Wendel",
-      email: "wendel@email.com"
+import User from "../models/User.js";
+
+export const getProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-senha");
+
+    if (!user) {
+      return res.status(404).json({
+        message: "Usuário não encontrado"
+      });
     }
-  ];
-  
-  export const getUsers = (req, res) => {
-    res.json(users);
-  };
-  
-  export const createUser = (req, res) => {
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({
+      message: error.message
+    });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
     const { nome, email } = req.body;
-  
-    const newUser = {
-      id: users.length + 1,
-      nome,
-      email
-    };
-  
-    users.push(newUser);
-  
-    res.status(201).json(newUser);
-  };
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        nome,
+        email
+      },
+      {
+        new: true
+      }
+    ).select("-senha");
+
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({
+      message: error.message
+    });
+  }
+};
